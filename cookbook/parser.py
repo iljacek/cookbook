@@ -1,13 +1,20 @@
 import requests
 from bs4 import BeautifulSoup
+import re
 
 
 class Record:
     def __init__(self, url):
         self.url = url
+        self.record = {}
 
     def scrape_data(self):
         pass
+
+    def print_data(self):
+
+        print(self.record)
+
 
 
 class ApetitRecord(Record):
@@ -16,24 +23,40 @@ class ApetitRecord(Record):
         r = requests.get(self.url)
         soup = BeautifulSoup(r.text, features="html.parser")
 
-        self.difficulty = soup.find_all(class_="narocnost")[0]
-        self.portions = soup.find_all(class_="porce")[0]
-        self.time = soup.find_all(class_="priprava")[0]
-        self.time.find_all("br")[0].clear()
+        # print(soup.prettify())
 
-        print(self.difficulty.get_text())
-        print(self.portions.get_text())
-        print(self.time.get_text())
-        print()
+        self.record["difficulty"] = soup.find_all(class_="narocnost")[0].get_text().split(": ")[1]
 
-        self.ingredients = soup.find_all(class_="ingredience-wrapper")[0].find_all("li")
-        for item in self.ingredients:
-            print(item.get_text())
-        print()
+        portions = soup.find_all(class_="porce")[0].get_text().split()
+        self.record["portions"] = ' '.join(portions[2:])
 
-        self.recipe = soup.find_all(class_="priprava-wrapper")[0].find_all("p")
-        for item in self.recipe:
-            print(item.get_text())
+        time = soup.find_all(class_="priprava")[0]
+        time.find_all("br")[0].clear()
+        self.record["time"] = time.get_text().split(": ")[1].rstrip()
+
+        ingredients = soup.find_all(class_="ingredience-wrapper")[0].find_all(["ul", "p"])
+        # print(ingredients[2].find_next_sibling())
+
+        dict = {}
+        itemlist = ingredients[1].find_all("li")
+        dict["general"] = list(map(lambda item: item.get_text(), itemlist))
+        for i, j in zip(ingredients[2::2], ingredients[3::2]):
+            itemlist = j.find_all("li")
+            dict[i.get_text()] = list(map(lambda item: item.get_text(), itemlist))
+
+        self.record["ingredients"] = {}
+        for key, value in dict.items():
+            search = list((map(lambda item: re.search(r"^((?:špetka)?[0-9/–-]*(?:\s?[mcdk]?[gl])?)\s?(.*)", item), value)))
+            amounts = list((map(lambda item: item.group(1), search)))
+            value = list((map(lambda item: item.group(2), search)))
+            self.record["ingredients"][key] = [{key: value} for key, value in zip(value, amounts)]
+
+        recipe = soup.find_all(class_="priprava-wrapper")[0].find_all("p")
+        section = [item.find_all("strong")[0].get_text() for item in recipe]
+        [item.find_all("strong")[0].clear() for item in recipe]
+        recipe = [item.get_text() for item in recipe]
+
+        self.record["recipe"] = [{key: value.replace(u'\xa0', u' ')} for key, value in zip(section, recipe) if value != '']
 
 
 class VarechaRecord(Record):
@@ -45,38 +68,37 @@ class VarechaRecord(Record):
         # print(soup.prettify())
 
         try:
-            self.portions = soup.find_all(class_="info-number")[0]
-            print(self.portions.get_text())
+            self.record["portions"] = soup.find_all(class_="info-number")[0].get_text()
         except IndexError:
             pass
         try:
-            self.time = soup.find_all(class_="info-number")[1]
-            print(self.time.get_text())
+            self.record["time"] = soup.find_all(class_="info-number")[1].get_text()
         except IndexError:
             pass
-        print()
+
+        # get list with amounts
+        amounts = soup.find_all("table")[0].find_all(class_="recipe-ingredients__amount")
+        amounts = [item for item in map(lambda item: item.get_text(), amounts)]
+
+        # list with ingredients
+        ingredients = soup.find_all("table")[0].find_all(class_="recipe-ingredients__ingredient")
+        ingredients = [item for item in map(lambda item: item.find_all("a")[0].get_text(), ingredients)]
+
+        # fill ingredient group
+        self.record["ingredients"] = {}
+        self.record["ingredients"]["general"] = [{key: value.replace(u'\xa0', u' ')} for key, value in zip(ingredients, amounts)]
 
 
-        self.amounts = soup.find_all("table")[0].find_all(class_="recipe-ingredients__amount")
-        self.ingredients = soup.find_all("table")[0].find_all(class_="recipe-ingredients__ingredient")
-        for item in self.ingredients:
-            item = item.find_all("a")[0]
-            print(item.get_text())
-        print()
-
-
-        self.recipe = soup.find_all(class_="postup")[0]
-
-        for item in self.recipe.find_all("span"):
-            item = item.get_text() + ' ' + self.recipe.find_all("p")[int(item.get_text())-1].get_text()
-            print(item)
-        print()
+        recipe = soup.find_all(class_="postup")[0].find_all(["span", "p"])
+        recipe = [item for item in map(lambda item: item.get_text(), recipe)]
+        self.record["recipe"] = [{key: value.replace(u'\r\n', u' ')} for key, value in zip(recipe[::2], recipe[1::2])]
 
 
 def main():
-    # record = ApetitRecord('https://www.apetitonline.cz/recept/smazena-mozzarella-s-pikantni-omackou')
+    # record = ApetitRecord('https://www.apetitonline.cz/recept/chrestovy-quiche')
     record = VarechaRecord("https://varecha.pravda.sk/recepty/bruschetta-s-marinovanym-lososom-a-horcicovou-penou/75893-recept.html")
     record.scrape_data()
+    record.print_data()
 
 
 if __name__ == '__main__':
