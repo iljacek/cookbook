@@ -1,4 +1,5 @@
 import requests
+import json
 from bs4 import BeautifulSoup
 import re
 
@@ -13,7 +14,7 @@ class Record:
 
     def print_data(self):
 
-        print(self.record)
+        print(json.dumps(self.record, indent=4, sort_keys=True, ensure_ascii=False))
 
 
 
@@ -94,9 +95,67 @@ class VarechaRecord(Record):
         self.record["recipe"] = [{key: value.replace(u'\r\n', u' ')} for key, value in zip(recipe[::2], recipe[1::2])]
 
 
+class DobruchutRecord(Record):
+
+    def scrape_data(self):
+        r = requests.get(self.url)
+        soup = BeautifulSoup(r.text, features="html.parser")
+
+        # print(soup.prettify())
+
+        try:
+            self.record["difficulty"] = soup.find_all(class_="difficulty")[0].get_text().strip().replace(u'\n', u' ')
+        except IndexError:
+            pass
+        try:
+            self.record["portions"] = soup.find_all(class_="portions")[0].get_text().strip().replace(u'\n', u' ')
+        except IndexError:
+            pass
+        try:
+            self.record["time"] = soup.find_all(class_="total-time")[0].get_text().strip().replace(u'\n', u' ')
+        except IndexError:
+            pass
+
+        ingredients = soup.find_all(class_="substances-list")[0]
+        groups = ingredients.find_all(class_="title-red-small")
+        ingredients = ingredients.find_all(class_=["title-red-small", "item"])
+
+        self.record["ingredients"] = {}
+        group = "general"
+        if len(groups) <= 0:
+            self.record["ingredients"][group] = []
+
+        for item in ingredients:
+            if item.name == 'h3':
+                group = item.get_text()[:-1]
+                self.record["ingredients"][group] = []
+                continue
+            else:
+                ingredient = item.find_all(class_="title")[0].get_text()
+                amount = item.find_all(class_="amount")[0].get_text().strip().replace(u'\n', u' ').replace(u'\t', u'')
+                if amount == "ks":
+                    amount = ''
+                self.record["ingredients"][group].append({ingredient: amount})
+
+
+        procedure = soup.find_all(class_="procedure-list")[0].find_all("div")
+        if procedure[0].attrs:
+            section = procedure[1].find_all(class_="num")
+            recipe = procedure[1].find_all(class_="text")
+        else:
+            section = procedure[0].find_all(class_="num")
+            recipe = procedure[0].find_all(class_="text")
+
+        self.record["recipe"] = [{key.get_text(): value.get_text()} for key, value in zip(section, recipe)]
+
+
+
 def main():
     # record = ApetitRecord('https://www.apetitonline.cz/recept/chrestovy-quiche')
-    record = VarechaRecord("https://varecha.pravda.sk/recepty/bruschetta-s-marinovanym-lososom-a-horcicovou-penou/75893-recept.html")
+    # record = VarechaRecord("https://varecha.pravda.sk/recepty/bruschetta-s-marinovanym-lososom-a-horcicovou-penou/75893-recept.html")
+    # record = DobruchutRecord("https://dobruchut.aktuality.sk/recept/43534/tekvicove-gnocchi-s-hubovou-omackou/")
+    record = DobruchutRecord("https://dobruchut.aktuality.sk/recept/69575/luxusne-hokkaido-s-hubami-na-smotane/")
+
     record.scrape_data()
     record.print_data()
 
