@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import loader
@@ -11,34 +12,20 @@ from recipes.forms import RecipeForm, StepForm, RecipeURLForm
 from recipes.models import Recipe, Procedure, Ingredient, Quantity
 
 
+@login_required
 def home(request):
     my_recipes = Recipe.objects.filter(author=request.user)
     return render(request, "Cookbook/home.html", {'my_recipes': my_recipes})
 
 
+@login_required
 def get_from_url(request, site):
-    # if site == 1:
-    #     url = "https://www.apetitonline.cz/recept/chrestovy-quiche"
-    #     record = URL_parser.ApetitRecord(url)
-    # elif site == 2:
-    #     url = "https://varecha.pravda.sk/recepty/bruschetta-s-marinovanym-lososom-a-horcicovou-penou/75893-recept.html"
-    #     record = URL_parser.VarechaRecord(url)
-    # else:
-    #     url = "https://dobruchut.aktuality.sk/recept/69575/luxusne-hokkaido-s-hubami-na-smotane/"
-    #     record = URL_parser.DobruchutRecord(url)
-    # record.scrape_data()
-
     record = Recipe.objects.get(id=55)
     record = record.get_json()
-
-    # json_pretty = json.dumps(record.record, indent=4, sort_keys=True, ensure_ascii=False)
-    # context = { "json_pretty": json_pretty,}
-
-    context = record
-    return render(request, 'recipes/show_recipe.html', context)
-    # return HttpResponse(json_pretty,content_type="application/json")
+    return render(request, 'recipes/show_recipe.html', record)
 
 
+@login_required
 def new_recipe(request):
     if request.method == "POST":
         recipe = Recipe()
@@ -53,6 +40,7 @@ def new_recipe(request):
     return render(request, "recipes/recipe_form.html", {'form': form})
 
 
+@login_required
 def new_step(request, recipe):
     if request.method == "POST":
         procedure = Procedure()
@@ -71,6 +59,7 @@ def new_step(request, recipe):
     return render(request, "recipes/procedure_form.html", {'form': form, 'recipe': recipe})
 
 
+@login_required
 def new_from_url(request):
     if request.method == "POST":
         recipe = Recipe()
