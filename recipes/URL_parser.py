@@ -17,7 +17,6 @@ class Record:
         print(json.dumps(self.record, indent=4, sort_keys=True, ensure_ascii=False))
 
 
-
 class ApetitRecord(Record):
 
     def scrape_data(self):
@@ -25,6 +24,8 @@ class ApetitRecord(Record):
         soup = BeautifulSoup(r.text, features="html.parser")
 
         # print(soup.prettify())
+
+        self.record["name"] = soup.find_all(class_="title")[0].get_text()
 
         self.record["difficulty"] = soup.find_all(class_="narocnost")[0].get_text().split(": ")[1]
 
@@ -50,14 +51,14 @@ class ApetitRecord(Record):
             search = list((map(lambda item: re.search(r"^((?:špetka)?[0-9/–-]*(?:\s?[mcdk]?[gl])?)\s?(.*)", item), value)))
             amounts = list((map(lambda item: item.group(1), search)))
             value = list((map(lambda item: item.group(2), search)))
-            self.record["ingredients"][key] = [{key: value} for key, value in zip(value, amounts)]
+            self.record["ingredients"][key] = {key: value for key, value in zip(value, amounts)}
 
         recipe = soup.find_all(class_="priprava-wrapper")[0].find_all("p")
-        section = [item.find_all("strong")[0].get_text() for item in recipe]
-        [item.find_all("strong")[0].clear() for item in recipe]
+        section = [item.find_all("strong")[0].get_text() for item in recipe if item.next.name == "strong"]
+        [item.find_all("strong")[0].clear() for item in recipe if item.next.name == "strong"]
         recipe = [item.get_text() for item in recipe]
 
-        self.record["recipe"] = [{key: value.replace(u'\xa0', u' ')} for key, value in zip(section, recipe) if value != '']
+        self.record["recipe"] = {key: value.replace(u'\xa0', u' ') for key, value in zip(section, recipe) if value != ''}
 
 
 class VarechaRecord(Record):
@@ -67,6 +68,8 @@ class VarechaRecord(Record):
         soup = BeautifulSoup(r.text, features="html.parser")
 
         # print(soup.prettify())
+
+        self.record["name"] = soup.find_all(class_="intro")[0].find_all("h1")[0].get_text()
 
         try:
             self.record["portions"] = soup.find_all(class_="info-number")[0].get_text()
@@ -87,12 +90,12 @@ class VarechaRecord(Record):
 
         # fill ingredient group
         self.record["ingredients"] = {}
-        self.record["ingredients"]["general"] = [{key: value.replace(u'\xa0', u' ')} for key, value in zip(ingredients, amounts)]
+        self.record["ingredients"]["general"] = {key: value.replace(u'\xa0', u' ') for key, value in zip(ingredients, amounts)}
 
 
         recipe = soup.find_all(class_="postup")[0].find_all(["span", "p"])
         recipe = [item for item in map(lambda item: item.get_text(), recipe)]
-        self.record["recipe"] = [{key: value.replace(u'\r\n', u' ')} for key, value in zip(recipe[::2], recipe[1::2])]
+        self.record["recipe"] = {key: value.replace(u'\r\n', u' ') for key, value in zip(recipe[::2], recipe[1::2])}
 
 
 class DobruchutRecord(Record):
@@ -102,6 +105,8 @@ class DobruchutRecord(Record):
         soup = BeautifulSoup(r.text, features="html.parser")
 
         # print(soup.prettify())
+
+        self.record["name"] = soup.find_all(class_="recipe-body")[0].find_all("h1")[0].get_text()
 
         try:
             self.record["difficulty"] = soup.find_all(class_="difficulty")[0].get_text().strip().replace(u'\n', u' ')
@@ -123,19 +128,19 @@ class DobruchutRecord(Record):
         self.record["ingredients"] = {}
         group = "general"
         if len(groups) <= 0:
-            self.record["ingredients"][group] = []
+            self.record["ingredients"][group] = {}
 
         for item in ingredients:
             if item.name == 'h3':
                 group = item.get_text()[:-1]
-                self.record["ingredients"][group] = []
+                self.record["ingredients"][group] = {}
                 continue
             else:
                 ingredient = item.find_all(class_="title")[0].get_text()
                 amount = item.find_all(class_="amount")[0].get_text().strip().replace(u'\n', u' ').replace(u'\t', u'')
                 if amount == "ks":
                     amount = ''
-                self.record["ingredients"][group].append({ingredient: amount})
+                self.record["ingredients"][group][ingredient] = amount
 
 
         procedure = soup.find_all(class_="procedure-list")[0].find_all("div")
@@ -146,15 +151,15 @@ class DobruchutRecord(Record):
             section = procedure[0].find_all(class_="num")
             recipe = procedure[0].find_all(class_="text")
 
-        self.record["recipe"] = [{key.get_text(): value.get_text()} for key, value in zip(section, recipe)]
+        self.record["recipe"] = {key.get_text(): value.get_text() for key, value in zip(section, recipe)}
 
 
 
 def main():
-    # record = ApetitRecord('https://www.apetitonline.cz/recept/chrestovy-quiche')
+    record = ApetitRecord('https://www.apetitonline.cz/recept/tunakova-pena')
     # record = VarechaRecord("https://varecha.pravda.sk/recepty/bruschetta-s-marinovanym-lososom-a-horcicovou-penou/75893-recept.html")
     # record = DobruchutRecord("https://dobruchut.aktuality.sk/recept/43534/tekvicove-gnocchi-s-hubovou-omackou/")
-    record = DobruchutRecord("https://dobruchut.aktuality.sk/recept/69575/luxusne-hokkaido-s-hubami-na-smotane/")
+    # record = DobruchutRecord("https://dobruchut.aktuality.sk/recept/69575/luxusne-hokkaido-s-hubami-na-smotane/")
 
     record.scrape_data()
     record.print_data()

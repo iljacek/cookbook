@@ -14,8 +14,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.contrib.auth.views import LoginView, LogoutView
+from django.urls import path, include
+
+from recipes.views import home
 
 urlpatterns = [
+    path('', home, name='home'),
     path('admin/', admin.site.urls),
+    path('recipes/', include('recipes.urls')),
+    path('login/', LoginView.as_view(template_name="Cookbook/login_form.html"), name="player_login"),
+    path('logout/', LogoutView.as_view(), name="player_logout"),
 ]

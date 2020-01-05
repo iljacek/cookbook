@@ -1,16 +1,11 @@
 from django.contrib import admin
-from cookbook.models import Ingredient, IngredientSet, Procedure, Category, Recipe, Quantity
+from recipes.models import Ingredient, Procedure, Category, Recipe, Quantity
 # Register your models here.
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', )
-
-
-@admin.register(IngredientSet)
-class IngredientSetAdmin(admin.ModelAdmin):
-    list_display = ('name', )       # 'ingredients',
 
 
 @admin.register(Procedure)
@@ -30,4 +25,4 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Quantity)
 class QuantityAdmin(admin.ModelAdmin):
-    list_display = ('ingredient', 'set', 'quantity', 'unit',)
+    list_display = ('ingredient', 'set', 'quantity',)
