@@ -4,6 +4,9 @@
         {% for recipe in recipes_list %}
             <a class="list-group-item list-group-item-info" href="{{ recipe.get_absolute_url }}">
                 {{ recipe }}
+{#                <div style="text-align: right">#}
+                    <img src="{{MEDIA_URL}}{{recipe.picture.url}}" alt="Image of recipe is not present" style="margin-left: auto; margin-top: -20px; display: block; height: 100px">
+{#                </div>#}
             </a>
         {% endfor %}
     </div>

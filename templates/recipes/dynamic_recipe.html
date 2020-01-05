@@ -1,0 +1,141 @@
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+
+{% extends "Cookbook/base.html" %}
+
+{% block title %}
+     {{ name }}     {#    Home: {{ user.username }}#}
+{% endblock %}
+
+{% block content %}
+
+<form class="needs-validation" novalidate>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="name">Name of recipe</label>
+      <input type="text" class="form-control" id="name" placeholder="Name of recipe" value="" required>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="name">Website with recipe</label>
+      <input type="text" class="form-control" id="website" placeholder="External URL with recipe" value="">
+    </div>
+  </div>
+    <br>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label for="difficulty">Difficulty</label>
+      <input type="text" class="form-control" id="difficulty" placeholder="Difficulty" value="" required>
+{#      <div class="valid-feedback">#}
+{#        Looks good!#}
+{#      </div>#}
+    </div>
+    <div class="col-md-4 mb-3">
+      <label for="portions">Portions</label>
+      <input type="text" class="form-control" id="portions" placeholder="Portions" value="" required>
+{#        <div class="invalid-feedback">#}
+{#          Please choose a username.#}
+{#        </div>#}
+    </div>
+    <div class="col-md-4 mb-3">
+      <label for="time">Time</label>
+      <input type="text" class="form-control" id="time" placeholder="Time" value="" required>
+{#        <div class="invalid-feedback">#}
+{#          Please choose a username.#}
+{#        </div>#}
+    </div>
+  </div>
+  <br>
+
+  <label for="ingredient_fields">Ingredients</label>
+  <div class="row">
+    <div id="ingredient_fields"></div>
+    <div class="col-sm-4 nopadding">
+      <div class="form-group">
+{#        <label for="group">Group</label>#}
+        <input type="text" class="form-control" id="group" name="group[]" value="" placeholder="Group">
+      </div>
+    </div>
+    <div class="col-sm-4 nopadding">
+      <div class="form-group">
+{#        <label for="ingredient">Ingredient</label>#}
+        <input type="text" class="form-control" id="ingredient" name="ingredient[]" value="" placeholder="Ingredient">
+      </div>
+    </div>
+    <div class="col-sm-4 nopadding">
+      <div class="form-group">
+        <div class="input-group">
+{#          <label for="quantity">Quantity</label>#}
+          <input type="text" class="form-control" id="quantity" name="quantity[]" value="" placeholder="Quantity">
+
+          <div class="input-group-btn">
+            <button class="btn btn-success" type="button"  onclick="ingredient_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <br>
+
+
+  <label for="procedure_fields">Procedure</label>
+  <div class="row">
+    <div id="procedure_fields"></div>
+    <div class="col-sm-2 nopadding">
+      <div class="form-group">
+{#        <label for="group">Group</label>#}
+        <input type="text" class="form-control" id="name" name="name[]" value="" placeholder="Name of step">
+      </div>
+    </div>
+    <div class="col-sm-10 nopadding">
+      <div class="form-group">
+        <div class="input-group">
+{#          <label for="quantity">Quantity</label>#}
+            <textarea class="form-control" rows="3" id="text" name="text[]" placeholder="Procedure"></textarea>
+
+          <div class="input-group-btn">
+            <button class="btn btn-success" type="button"  onclick="procedure_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <br>
+
+
+  <div class="row">
+      <div class="col-md-3 mb-3">
+        <label for="image">Image</label>
+        <input type="file" name="image" >
+      </div>
+  </div>
+    <br>
+{#  <div class="form-group">#}
+{#    <div class="form-check">#}
+{#      <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>#}
+{#      <label class="form-check-label" for="invalidCheck">#}
+{#        Agree to terms and conditions#}
+{#      </label>#}
+{#      <div class="invalid-feedback">#}
+{#        You must agree before submitting.#}
+{#      </div>#}
+{#    </div>#}
+{#  </div>#}
+  <button class="btn btn-primary" type="submit">Submit form</button>
+</form>
+
+
+
+
+
+
+
+{% endblock %}

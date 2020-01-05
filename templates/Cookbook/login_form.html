@@ -10,13 +10,25 @@
     <form role="form"
           action="{% url 'player_login' %}"
           method="post">
-        {% csrf_token %}
+          {% csrf_token %}
 
-        <p>Please login.</p>
+          <h3 class="info-title">Please login</h3>
 
-        {{ form | crispy }}
+          {{ form | crispy }}
 
-        <button type="submit" class="btn btn-success">Sign in</button>
+
+          <div style="display: inline-block;">
+            <button type="submit" class="btn btn-success">Sign in</button>
+          </div>
+
+          <div style="display: inline-block;">
+            <p>
+                <a class="btn btn-primary"
+                   href="{% url 'signup' %}">Create new account</a>
+            </p>
+          </div>
     </form>
+
+
 
 {% endblock %}

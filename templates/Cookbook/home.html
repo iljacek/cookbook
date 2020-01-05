@@ -10,7 +10,6 @@
     <div class="row">
         <div class="col-md-9">
             <div class="new_recipe_wrapper">
-{#                {% include "Cookbook/add_new_popup.html" with games_list=finished_games %}#}
 
                 <h3 class="section-title">Add new recipe:</h3>
                 <div style="display: inline-block;">
@@ -33,12 +32,6 @@
 
             {% include "recipes/recipe_list_snippet.html" with recipes_list=my_recipes %}
 
-{##}
-{#            <a href="{% url 'recipes:get_data' site='1' %}">Chřestový quiche</a>#}
-{#            <br>#}
-{#            <a href="{% url 'recipes:get_data' site='2' %}">Bruschetta s marinovaným lososom a horčicovou penou</a>#}
-{#            <br>#}
-{#            <a href="{% url 'recipes:get_data' site='3' %}">Luxusné hokkaido s hubami na smotane</a>#}
         </div>
 
         <div class="col-md-3">

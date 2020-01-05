@@ -1,0 +1,22 @@
+{% extends "Cookbook/base.html" %}
+
+{% load crispy_forms_tags %}
+{% block title %}
+    Sign up
+{% endblock %}
+
+{% block content %}
+
+    <form role="form"
+          action="{% url 'signup' %}"
+          method="post">
+          {% csrf_token %}
+
+          <h3 class="info-title">Please sign up</h3>
+
+          {{ form | crispy }}
+
+          <button type="submit" class="btn btn-success">Sign up</button>
+    </form>
+
+{% endblock %}

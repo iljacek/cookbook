@@ -5,34 +5,39 @@
 {% endblock %}
 
 {% block content %}
-    <h2 class="text-primary">{{ name }}</h2>     {#    <h2 class="text-primary">Welcome, {{ user.username }}</h2>#}
+    <h1 class="section-title">{{ name }}</h1>     {#    <h2 class="text-primary">Welcome, {{ user.username }}</h2>#}
 
     <div class="row">
         <div class="col-md-4">
-            <h3 style="color: dimgrey">Difficulty</h3>
+            <br>
+            <h3 class="info-title">Difficulty</h3>
             {% if difficulty %}
                 <p>{{ difficulty }}</p>
             {% else %}
                 <p>Difficulty was not specified.</p>
             {% endif %}
-        </div>
 
-        <div class="col-md-4">
-            <h3 style="color: dimgrey">Portions</h3>
+            <br>
+            <h3 class="info-title">Portions</h3>
             {% if portions %}
                 <p>{{ portions }}</p>
             {% else %}
                 <p>Number of portions was not specified.</p>
             {% endif %}
-        </div>
 
-        <div class="col-md-4">
-            <h3 style="color: dimgrey">Time</h3>
+            <br>
+            <h3 class="info-title">Time</h3>
             {% if time %}
                 <p>{{ time }}</p>
             {% else %}
                 <p>Total time was not specified.</p>
             {% endif %}
+            <br>
+
+        </div>
+
+        <div class="col-md-8">
+            <img src="{{MEDIA_URL}}{{picture.url}}" alt="Image of recipe is not present" style="margin: auto; display: block; height: 338px">
         </div>
     </div>
 
@@ -46,22 +51,24 @@
     <br>
     <div class="row">
         <div class="col-md-4">
-            <i><h3 style="color: red">Ingredients</h3></i>
-            <div style="border-style: solid; padding: 10px;">
+            <h3 class="section-title">Ingredients</h3>
+            <div style="border-style: solid; padding: 10px; background: ivory; border-radius: 20px">
 
+                {% if ingredients.general %}
+                        <br>
+                        {% include "recipes/ingredients_list.html" with ingredients_list=ingredients.general %}
+                {% endif %}
                 {% for group, ingredients in ingredients.items %}
                     {% if group != "general"%}
                         <br>
                         <strong>{{ group }}</strong>
-                    {% else %}
-                        <br>
+                        {% include "recipes/ingredients_list.html" with ingredients_list=ingredients %}
                     {% endif %}
-                    {% include "recipes/ingredients_list.html" with ingredients_list=ingredients %}
                 {% endfor %}
             </div>
         </div>
 
-        <i><h3 style="color: red">Procedure</h3></i>
+        <h3 class="section-title">Procedure</h3>
         <div class="col-md-8">
 
             {% for step, procedure in recipe.items %}

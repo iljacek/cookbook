@@ -6,7 +6,12 @@
         {% for ingredient, quantity in ingredients_list.items %}
             <tr>
                 <td>{{ quantity }}</td>
-                <td>{{ ingredient }}</td>
+                <td>
+                    <a class="list-group-item list-group-item-warning" href="{{ recipe.get_absolute_url }}">
+                        {{ ingredient }}
+                    </a>
+
+                </td>
             </tr>
         {% endfor %}
     </table>
