@@ -26,29 +26,41 @@ class ApetitRecord(Record):
         # print(soup.prettify())
 
         self.record["name"] = soup.find_all(class_="title")[0].get_text()
+        self.record["image"] = soup.find_all(class_="novinka-img")[0].find_all("img")[0].attrs['src']
 
-        self.record["difficulty"] = soup.find_all(class_="narocnost")[0].get_text().split(": ")[1]
-
-        portions = soup.find_all(class_="porce")[0].get_text().split()
-        self.record["portions"] = ' '.join(portions[2:])
-
-        time = soup.find_all(class_="priprava")[0]
-        time.find_all("br")[0].clear()
-        self.record["time"] = time.get_text().split(": ")[1].rstrip()
+        try:
+            self.record["difficulty"] = soup.find_all(class_="narocnost")[0].get_text().split(": ")[1]
+        except IndexError:
+            pass
+        try:
+            portions = soup.find_all(class_="porce")[0].get_text().split()
+            self.record["portions"] = ' '.join(portions[2:])
+        except IndexError:
+            pass
+        try:
+            time = soup.find_all(class_="priprava")[0]
+            time.find_all("br")[0].clear()
+            self.record["time"] = time.get_text().split(": ")[1].rstrip()
+        except IndexError:
+            pass
 
         ingredients = soup.find_all(class_="ingredience-wrapper")[0].find_all(["ul", "p"])
         # print(ingredients[2].find_next_sibling())
 
         dict = {}
-        itemlist = ingredients[1].find_all("li")
-        dict["general"] = list(map(lambda item: item.get_text(), itemlist))
-        for i, j in zip(ingredients[2::2], ingredients[3::2]):
-            itemlist = j.find_all("li")
-            dict[i.get_text()] = list(map(lambda item: item.get_text(), itemlist))
+        if ingredients[1].contents[0].name != "strong":
+            group = "general"
+
+        for item in ingredients[1:]:
+            if item.contents[0].name == "strong":
+                group = item.contents[0].contents[0]
+            else:
+                itemlist = item.find_all("li")
+                dict[group] = list(map(lambda item: item.get_text(), itemlist))
 
         self.record["ingredients"] = {}
         for key, value in dict.items():
-            search = list((map(lambda item: re.search(r"^((?:špetka)?[0-9/–-]*(?:\s?[mcdk]?[gl])?)\s?(.*)", item), value)))
+            search = list((map(lambda item: re.search(r"^((?:hrst)?(?:špetka)?[0-9/–,.-]*(?:\s?[mcdk]?[gl]\s)?)\s?(.*)", item), value)))
             amounts = list((map(lambda item: item.group(1), search)))
             value = list((map(lambda item: item.group(2), search)))
             self.record["ingredients"][key] = {key: value for key, value in zip(value, amounts)}
@@ -67,9 +79,11 @@ class VarechaRecord(Record):
         r = requests.get(self.url)
         soup = BeautifulSoup(r.text, features="html.parser")
 
-        # print(soup.prettify())
+        print(soup.prettify())
 
         self.record["name"] = soup.find_all(class_="intro")[0].find_all("h1")[0].get_text()
+        image = soup.find_all(class_="recipe-photo")[0].find_all("img")[0].attrs['src']
+        self.record["image"] = "https://varecha.pravda.sk" + image
 
         try:
             self.record["portions"] = soup.find_all(class_="info-number")[0].get_text()
@@ -80,18 +94,25 @@ class VarechaRecord(Record):
         except IndexError:
             pass
 
-        # get list with amounts
-        amounts = soup.find_all("table")[0].find_all(class_="recipe-ingredients__amount")
-        amounts = [item for item in map(lambda item: item.get_text(), amounts)]
-
-        # list with ingredients
-        ingredients = soup.find_all("table")[0].find_all(class_="recipe-ingredients__ingredient")
-        ingredients = [item for item in map(lambda item: item.find_all("a")[0].get_text(), ingredients)]
-
-        # fill ingredient group
         self.record["ingredients"] = {}
-        self.record["ingredients"]["general"] = {key: value.replace(u'\xa0', u' ') for key, value in zip(ingredients, amounts)}
+        table_content = soup.find_all("table")[0].find_all(class_=["recipe-ingredients__group", "recipe-ingredients__amount",
+                                               "recipe-ingredients__ingredient"])
 
+        group = "general"
+        if table_content[0].attrs["class"][0] != 'recipe-ingredients__group':
+            self.record["ingredients"][group] = {}
+
+        amount = ''
+        for item in table_content:
+            if item.attrs["class"][0] == 'recipe-ingredients__group':
+                group = item.get_text()
+                self.record["ingredients"][group] = {}
+                continue
+            elif item.attrs["class"][0] == 'recipe-ingredients__amount':
+                amount = item.get_text().replace(u'\xa0', u' ')
+            else:
+                ingredient = item.find_all("a")[0].get_text()
+                self.record["ingredients"][group][ingredient] = amount
 
         recipe = soup.find_all(class_="postup")[0].find_all(["span", "p"])
         recipe = [item for item in map(lambda item: item.get_text(), recipe)]
@@ -107,6 +128,7 @@ class DobruchutRecord(Record):
         # print(soup.prettify())
 
         self.record["name"] = soup.find_all(class_="recipe-body")[0].find_all("h1")[0].get_text()
+        self.record["image"] = soup.find_all(class_="main-image")[0].find_all("img")[1].attrs['src']
 
         try:
             self.record["difficulty"] = soup.find_all(class_="difficulty")[0].get_text().strip().replace(u'\n', u' ')
@@ -132,7 +154,7 @@ class DobruchutRecord(Record):
 
         for item in ingredients:
             if item.name == 'h3':
-                group = item.get_text()[:-1]
+                group = item.get_text()
                 self.record["ingredients"][group] = {}
                 continue
             else:
@@ -156,8 +178,9 @@ class DobruchutRecord(Record):
 
 
 def main():
-    record = ApetitRecord('https://www.apetitonline.cz/recept/tunakova-pena')
-    # record = VarechaRecord("https://varecha.pravda.sk/recepty/bruschetta-s-marinovanym-lososom-a-horcicovou-penou/75893-recept.html")
+    # record = ApetitRecord('https://www.apetitonline.cz/recept/chrestovy-quiche')
+    # record = ApetitRecord('https://www.apetitonline.cz/recept/bifteki-se-salatem-a-rozmarynovymi-bramborami')
+    record = VarechaRecord("https://varecha.pravda.sk/recepty/bruschetta-s-marinovanym-lososom-a-horcicovou-penou/75893-recept.html")
     # record = DobruchutRecord("https://dobruchut.aktuality.sk/recept/43534/tekvicove-gnocchi-s-hubovou-omackou/")
     # record = DobruchutRecord("https://dobruchut.aktuality.sk/recept/69575/luxusne-hokkaido-s-hubami-na-smotane/")
 

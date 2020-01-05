@@ -35,7 +35,11 @@ class Recipe(models.Model):
     def get_json(self):
         json = {}
         for item in Recipe._meta.fields:
+            # if item.name == "picture":
+            #     json["picture"] = self.picture.name
+            #     continue
             json[item.name] = getattr(self, item.name)
+
         ingredients = Ingredient.objects.filter(recipe=self)
         quantities = Quantity.objects.filter(recipe_id=json["id"])
         groups = {item.set for item in quantities}
@@ -50,7 +54,7 @@ class Recipe(models.Model):
         return json
 
     def get_absolute_url(self):
-        return reverse('recipes:get_data', args=[self.id])
+        return reverse('recipes:show_recipe', args=[self.id])
 
 
 class Quantity(models.Model):
