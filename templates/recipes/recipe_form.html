@@ -1,15 +1,15 @@
-{% extends "base/base.html" %}
+{% extends "Cookbook/base.html" %}
 {% load crispy_forms_tags %}
 
 {% block title %}
-    New Invitation
+    New Recipe
 {% endblock %}
 
 {% block content %}
-    <form method="post" action="{% url 'cookbook:new_data' %}">
+    <form method="post" action="{% url 'recipes:new_data' %}">
         {{ form | crispy }}
 
         {% csrf_token %}
-        <button type="submit">Send the invitation</button>
+        <button type="submit">Add procedure</button>
     </form>
 {% endblock %}

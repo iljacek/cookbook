@@ -1,10 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "Cookbook/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    New Step
+{% endblock %}
+
+{% block content %}
+    <form method="post" action="{% url 'recipes:new_step' recipe=recipe %}">
+        {{ form | crispy }}
+
+        {% csrf_token %}
+        <button type="submit" name="add_step">Add next step</button>
+        <button type="submit" name="finish">Finish</button>
+    </form>
+{% endblock %}

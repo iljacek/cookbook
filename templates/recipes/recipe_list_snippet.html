@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% if recipes_list %}
+
+    <div class="list-group bg-info">
+        {% for recipe in recipes_list %}
+            <a class="list-group-item list-group-item-info" href="{{ recipe.get_absolute_url }}">
+                {{ recipe }}
+            </a>
+        {% endfor %}
+    </div>
+
+{% endif %}

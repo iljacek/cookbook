@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "Cookbook/base.html" %}
+<header>
+    $('.toggleModal').on('click', function (e) {
+
+  $('.modal').toggleClass('active');
+
+});
+</header>
+
+<div class="wrapper">
+
+  <section>
+      <button class="button-border toggleModal">
+          +
+      </button>
+  </section>
+
+  <div class="modal">
+
+    <header>
+      <h2>Add new recipe</h2>
+      <button class="close toggleModal">Close</button>
+    </header>
+
+    <button class="button-border button-success">
+      Add by url
+    </button>
+
+    <button class="button-border button-error pull-right">
+      Fill out form
+    </button>
+
+  </div>
+
+</div>

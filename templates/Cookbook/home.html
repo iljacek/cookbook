@@ -1,12 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <h1>Stáááry áhoj </h1>
-    <h2>Stáááry áhoj </h2>
-    <h3>Stary ahóóóóóóóóóóóóóóóóóóóóóóóóóoój </h3>
-</body>
-</html>
+{% extends "Cookbook/base.html" %}
+
+{% block title %}
+    Home: {{ user.username }}
+{% endblock %}
+
+{% block content %}
+    <h2 class="text-primary">Welcome, {{ user.username }}</h2>
+
+    <div class="row">
+        <div class="col-md-9">
+            <div class="new_recipe_wrapper">
+{#                {% include "Cookbook/add_new_popup.html" with games_list=finished_games %}#}
+
+                <h3 class="section-title">Add new recipe:</h3>
+                <div style="display: inline-block;">
+                    <p>
+                        <a class="btn btn-primary"
+                           href="{% url 'recipes:data_from_url' %}">Add by url</a>
+                    </p>
+                </div>
+
+                <div style="display: inline-block;">
+                    <p>
+                        <a class="btn btn-primary"
+                           href="{% url 'recipes:new_data' %}">Fill out form</a>
+                    </p>
+                </div>
+            </div>
+
+            <br>
+            <h3 class="section-title">Your recipes: </h3>
+
+            {% include "recipes/recipe_list_snippet.html" with recipes_list=my_recipes %}
+
+{##}
+{#            <a href="{% url 'recipes:get_data' site='1' %}">Chřestový quiche</a>#}
+{#            <br>#}
+{#            <a href="{% url 'recipes:get_data' site='2' %}">Bruschetta s marinovaným lososom a horčicovou penou</a>#}
+{#            <br>#}
+{#            <a href="{% url 'recipes:get_data' site='3' %}">Luxusné hokkaido s hubami na smotane</a>#}
+        </div>
+
+
+        <div class="col-md-3">
+            <h3 class="section-title">Search:</h3>
+
+            Tu bude search bar
+
+            <br>
+            <h3 class="section-title">Search by category:</h3>
+            Nejaka implementacia
+            <br>
+            <h3 class="section-title">Search by ingredients:</h3>
+            Nejaka implementacia
+
+        </div>
+    </div>
+
+{% endblock %}
