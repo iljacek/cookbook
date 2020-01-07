@@ -76,6 +76,16 @@ def show_recipe(request, recipe):
     record = record.get_json()
     return render(request, 'recipes/show_recipe.html', record)
 
+@login_required
+def remove_recipe(request, recipe):
+    item = Recipe.objects.get(id=recipe)
+    item.delete()
+
+    my_recipes = Recipe.objects.filter(author=request.user)
+    categories = Category.objects.all()
+    context = {"my_recipes": my_recipes, "categories": categories}
+
+    return render(request, "Cookbook/home.html", context)
 
 @login_required
 def new_recipe(request):

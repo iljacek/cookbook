@@ -6,7 +6,8 @@ from . import views
 
 app_name = 'recipes'
 urlpatterns = [
-    path('<int:recipe>/show_recipe/', views.show_recipe, name='show_recipe'),
+    path('show_recipe/<int:recipe>', views.show_recipe, name='show_recipe'),
     path('new_data/', views.new_recipe, name='new_data'),
     path('data_from_url/', views.new_from_url, name='data_from_url'),
+    path('remove_recipe/<int:recipe>/', views.remove_recipe, name='remove_recipe'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

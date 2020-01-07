@@ -43,10 +43,11 @@
           <a class="navbar-brand" href="/">Smart Cookbook</a>
         </div>
         <ul class="navbar-nav navbar-right">
+            {% block navbar %} {% endblock %}
             {% if user.is_authenticated %}
-                <li><a href="{% url 'player_logout' %}">Logout</a> </li>
+                <li><a href="{% url 'player_logout' %}">Logout <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a> </li>
             {% else %}
-                <li><a href="{% url 'player_login' %}">Login</a> </li>
+                <li><a href="{% url 'player_login' %}">Login <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a> </li>
             {% endif %}
         </ul>
       </div>

@@ -60,8 +60,14 @@ class ApetitRecord(Record):
 
         self.record["ingredients"] = {}
         for key, value in dict.items():
-            search = list((map(lambda item: re.search(r"^((?:hrst)?(?:špetka)?[0-9/–,.-]*(?:\s?[mcdk]?[gl]\s)?)\s?(.*)", item), value)))
-            amounts = list((map(lambda item: item.group(1), search)))
+            search = list((map(lambda item:re.search(r"^([0-9/–,.-]*(?:\s?[mcdk]?[gl]\s)?\s?"
+                                                     r"(?:malá)?(?:malé)?(?:velká)?(?:velké)?"
+                                                     r"(?:menších)?(?:větších)?(?:menší)?(?:větší)?\s?"
+                                                     r"(?:stroužek)?(?:stroužky)?(?:hrst)?(?:špetka)?(?:lžíce)?"
+                                                     r"(?:lžička)?(?:lžičky)?(?:lžic)?(?:hrnek)?(?:hrnky)?(?:snítky)?"
+                                                     r"(?:plátky)?)\s*(.*)"
+                                                     , item), value)))
+            amounts = list((map(lambda item: item.group(1).strip(), search)))
             value = list((map(lambda item: item.group(2), search)))
             self.record["ingredients"][key] = {key: value for key, value in zip(value, amounts)}
 
