@@ -7,9 +7,17 @@
             <tr>
                 <td>{{ quantity }}</td>
                 <td>
-                    <a class="list-group-item list-group-item-warning" href="{{ recipe.get_absolute_url }}">
-                        {{ ingredient }}
-                    </a>
+
+                    <form  action="{% url 'search_results' %}" method='post'>
+                        {% csrf_token %}
+{#                        <div class="input-group" style="padding: 10px; margin: 0 auto;">#}
+                            <input type="hidden" value="{{ ingredient }}" name="name">
+                            <input type="hidden" value="ingredient" name="type">
+                            <button class="list-group-item list-group-item-warning" type="submit" style="display: block; width: 100%">           {# {{ recipe.get_absolute_url }} #}
+                                {{ ingredient }}
+                            </button>
+{#                        </div>#}
+                    </form>
 
                 </td>
             </tr>

@@ -37,14 +37,16 @@
         <div class="col-md-3">
             <h3 class="section-title">Search:</h3>
 
-            Tu bude search bar
+            {% include "Cookbook/search_bar.html" with recipes_list=my_recipes searched_item="recipe" %}
 
             <br>
             <h3 class="section-title">Search by category:</h3>
-            Nejaka implementacia
+            {% include "recipes/categories_list.html" with categories_list=categories %}
             <br>
+
             <h3 class="section-title">Search by ingredients:</h3>
-            Nejaka implementacia
+
+            {% include "Cookbook/search_bar.html" with recipes_list=my_recipes searched_item="ingredient"%}
 
         </div>
     </div>

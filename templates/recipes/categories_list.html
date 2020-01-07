@@ -1,14 +1,16 @@
-{% for category in categories_list.items %}
+{#<div style="width: 100%; text-align: center;">#}
+{% for category in categories_list %}
 
-    cauko
+        <div style="display: inline-block;">
         <form  action="{% url 'search_results' %}" method='post'>
             {% csrf_token %}
-            <div class="input-group">
                 <input type="hidden" value="{{ category }}" name="name">
                 <input type="hidden" value="category" name="type">
                 <button class="list-group-item list-group-item-warning" type="submit">           {# {{ recipe.get_absolute_url }} #}
-                    {{ ingredient }}
+                    {{ category }}
                 </button>
-            </div>
         </form>
+        </div>
 {% endfor %}
+{#</div>#}
+

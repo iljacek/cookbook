@@ -42,10 +42,14 @@
     </div>
 
     {% if categories %}
+    <br>
+    <div class="row">
         <h4>Categories: </h4>
-        {% for category in categories %}
-            category
-        {% endfor %}
+            {% include "recipes/categories_list.html" with categories_list=categories %}
+{#        {% for category in categories %}#}
+{#            {% include "recipes/categories_list.html" with categories_list=category %}#}
+{#        {% endfor %}#}
+    </div>
     {% endif %}
 
     <br>

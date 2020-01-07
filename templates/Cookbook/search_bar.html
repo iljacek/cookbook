@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<!--Blue select-->
+{% extends "Cookbook/base.html" %}
 
-</body>
-</html>
+{% if recipes_list %}
+
+{% block content %}
+
+    <form class="search" action="{% url 'search_results' %}" method='post'>
+      {% csrf_token %}
+        <div class="input-group">
+            <input class="form-control" style="margin-right: 5px; width: inherit" type="search"
+                   placeholder="{{searched_item}} name" name="name" value='{{ query }}' required>
+            <input type="hidden" value="{{ searched_item }}" name="type">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+
+    </form>
+
+{% endblock %}
+
+{% endif %}
