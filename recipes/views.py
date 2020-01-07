@@ -37,6 +37,22 @@ def search(request):
   return HttpResponse(t.render(c))
 
 
+def autocompleteModel(request, field):
+    if request.is_ajax():
+        q = request.GET.get('term', '').capitalize()
+        if field == "recipe":
+            search_qs = Recipe.objects.filter(name__icontains=q)
+        else:
+            search_qs = Ingredient.objects.filter(name__icontains=q)
+        results = []
+        for r in search_qs:
+            results.append(r.name)
+        data = json.dumps(results)
+    else:
+        data = 'fail'
+    mimetype = 'application/json'
+    return HttpResponse(data, mimetype)
+
 @login_required
 def search_results(request):
     if request.method == 'POST':

@@ -8,7 +8,7 @@
     <form class="search" action="{% url 'search_results' %}" method='post'>
       {% csrf_token %}
         <div class="input-group">
-            <input class="form-control" style="margin-right: 5px; width: inherit" type="search"
+            <input class="form-control" id="{{ searched_item }}" style="margin-right: 5px; width: inherit" type="search"
                    placeholder="{{searched_item}} name" name="name" value='{{ query }}' required>
             <input type="hidden" value="{{ searched_item }}" name="type">
             <button class="btn btn-primary" type="submit">Search</button>
@@ -16,6 +16,22 @@
 
     </form>
 
+    <script>
+        $(document).ready(function(){
+            $("#{{ searched_item }}").autocomplete({
+                source: "/ajax_calls/search/{{ searched_item }}",
+                minLength: 2,
+                open: function(){
+                    setTimeout(function () {
+                        $('.ui-autocomplete').css('z-index', 99);
+                    }, 0);
+                }
+              });
+        });
+    </script>
+
 {% endblock %}
+
+
 
 {% endif %}
