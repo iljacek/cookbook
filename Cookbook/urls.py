@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path, include
 
-from recipes.views import home
+from recipes.views import home, search_results, search
 from chef.views import SignUp
 
 urlpatterns = [
@@ -29,4 +29,6 @@ urlpatterns = [
     path('login/', LoginView.as_view(template_name="Cookbook/login_form.html"), name="player_login"),
     path('logout/', LogoutView.as_view(), name="player_logout"),
     path('signup/', SignUp.as_view(), name="signup"),
+    path('search_results/', search_results, name="search_results"),
+    path('test_search_results/', search, name='search'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

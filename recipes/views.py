@@ -1,6 +1,9 @@
 import json
 
+import requests
 from django.contrib.auth.decorators import login_required
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import loader
@@ -8,19 +11,52 @@ from django.template import loader
 import recipes.URL_parser as URL_parser
 
 # Create your views here.
-from recipes.forms import RecipeForm, StepForm, RecipeURLForm
-from recipes.models import Recipe, Procedure, Ingredient, Quantity
+from recipes.forms import RecipeForm, RecipeURLForm
+from recipes.models import Recipe, Procedure, Ingredient, Quantity, Category
+
+
+# def welcome(request):
+#     my_recipes = Recipe.objects.filter(author=request.user)
+#     return render(request, "Cookbook/welcome.html", {'my_recipes': my_recipes})
 
 
 @login_required
 def home(request):
     my_recipes = Recipe.objects.filter(author=request.user)
-    return render(request, "Cookbook/home.html", {'my_recipes': my_recipes})
+    categories = Category.objects.all()
+    context = {"my_recipes": my_recipes, "categories": categories}
+
+    return render(request, "Cookbook/home.html", context)
 
 
 @login_required
-def get_from_url(request, site):
-    record = Recipe.objects.get(id=55)
+def search(request):
+  query = request.POST['name']
+  t = loader.get_template('Cookbook/home.html')
+  c ={'query': query}
+  return HttpResponse(t.render(c))
+
+
+@login_required
+def search_results(request):
+    if request.method == 'POST':
+        if request.POST["type"] == 'ingredient':
+            my_recipes = Recipe.objects.filter(author=request.user, ingredients__name__contains=request.POST["name"])
+        elif request.POST["type"] == 'category':
+            my_recipes = Recipe.objects.filter(author=request.user, categories__name=request.POST["name"])
+        else:
+            my_recipes = Recipe.objects.filter(author=request.user, name__contains=request.POST['name'])
+        my_recipes = set(my_recipes)
+    else:
+        my_recipes = Recipe.objects.filter(author=request.user)
+    categories = Category.objects.all().order_by("name")
+    context = {"my_recipes": my_recipes, "categories": categories}
+    return render(request, "Cookbook/home.html", context)
+
+
+@login_required
+def show_recipe(request, recipe):
+    record = Recipe.objects.get(id=recipe)
     record = record.get_json()
     return render(request, 'recipes/show_recipe.html', record)
 
@@ -29,34 +65,32 @@ def get_from_url(request, site):
 def new_recipe(request):
     if request.method == "POST":
         recipe = Recipe()
-        form = RecipeForm(instance=recipe, data=request.POST)
+        form = RecipeForm(request.POST, request.FILES, instance=recipe)
+
         if form.is_valid():
             complete_form = form.save(commit=False)
             complete_form.author = request.user.get_username()
+            result = dict(form.data)
             complete_form.save()
-            return redirect('recipes:new_step', recipe=recipe.id)
+
+            for ingredient, quantity, group in zip(result["ingredient"], result["quantity"], result["group"]):
+                new_ingredient = Ingredient.objects.get_or_create(name=ingredient)
+                complete_form.ingredients.add(new_ingredient[0].pk)
+                Quantity.objects.get_or_create(ingredient=new_ingredient[0], recipe=complete_form, quantity=quantity, set=group)
+
+            for step, text in zip(result["step"], result["text"]):
+                Procedure.objects.get_or_create(recipe=complete_form, name=step, procedure=text)
+
+            for category in result["category"]:
+                new_category = Category.objects.get_or_create(name=category)
+                complete_form.categories.add(new_category[0].pk)
+
+            form.save_m2m()
+
+            return redirect('home')
     else:
         form = RecipeForm()
-    return render(request, "recipes/recipe_form.html", {'form': form})
-
-
-@login_required
-def new_step(request, recipe):
-    if request.method == "POST":
-        procedure = Procedure()
-        form = StepForm(instance=procedure, data=request.POST)
-        if form.is_valid():
-            complete_form = form.save(commit=False)
-            complete_form.recipe = Recipe.objects.get(id=recipe)
-            complete_form.save()
-
-            if 'add_step' in request.POST:
-                return redirect('recipes:new_step', recipe=recipe)
-            elif 'finish' in request.POST:
-                return redirect('home')
-    else:
-        form = StepForm()
-    return render(request, "recipes/procedure_form.html", {'form': form, 'recipe': recipe})
+    return render(request, "recipes/dynamic_recipe.html", {'form': form})
 
 
 @login_required
@@ -76,9 +110,16 @@ def new_from_url(request):
             record.scrape_data()
 
             for key, value in record.record.items():
-                if key != "ingredients" and key != "recipe":
+                if key != "ingredients" and key != "recipe" and key != "image":
                     setattr(complete_form, key, value)
+                elif key == "image":
+                    img_temp = NamedTemporaryFile(delete=True)
+                    img_temp.write(requests.get(value).content)
+                    img_temp.flush()
+
+                    complete_form.picture.save(record.record["name"].replace(u' ', u'_')+".jpg", File(img_temp))
             complete_form.save()
+
 
             # new_recipe = Recipe(website=recipe.website, name=record.record["name"])
             for group, items in record.record["ingredients"].items():

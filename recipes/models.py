@@ -8,6 +8,9 @@ from django.urls import reverse
 class Category(models.Model):
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=50)
@@ -43,6 +46,9 @@ class Recipe(models.Model):
         ingredients = Ingredient.objects.filter(recipe=self)
         quantities = Quantity.objects.filter(recipe_id=json["id"])
         groups = {item.set for item in quantities}
+        categories = self.categories.values_list().order_by("name")
+        if categories.exists():
+            json["categories"] = [category[1] for category in categories]
 
         json["ingredients"] = {}
         for group in groups:
