@@ -119,6 +119,72 @@ def new_recipe(request):
     return render(request, "recipes/dynamic_recipe.html", {'form': form})
 
 
+
+@login_required
+def edit_recipe(request, recipe):
+    instance = get_object_or_404(Recipe, id=recipe)
+    form = RecipeForm(request.POST or None, instance=instance)
+    procedure = Procedure.objects.filter(recipe=instance)
+    categories = Category.objects.filter(recipe=instance)
+    ingredients = Ingredient.objects.filter(recipe=instance)
+    ingredients = [ingredient for ingredient in ingredients]
+    quantities = [Quantity.objects.get(recipe=instance, ingredient=ingredient) for ingredient in ingredients]
+    ingredients_list = [{"id": ingredient.id, "name": ingredient.name, "quantity": quantity.quantity,
+                         "set": quantity.set} for ingredient, quantity in zip(ingredients, quantities)]
+
+    context = {'form': form,
+               'recipe': instance, 'procedure': procedure, 'categories': categories, 'ingredients': ingredients_list}
+
+    if form.is_valid():
+        complete_form = form.save(commit=False)
+        complete_form.author = request.user.get_username()
+        result = dict(form.data)
+
+        ingredient_set = zip(result["ingredient"], result["quantity"], result["group"])
+        print(complete_form.ingredients)
+
+        for item in Quantity.objects.filter(recipe=instance):
+            if zip(item.ingredient.name, item.quantity, item.set) not in ingredient_set:
+                item.delete()
+
+        for item in Procedure.objects.filter(recipe=instance):
+            if item.name not in result["step"]:
+                item.delete()
+
+        items = Ingredient.objects.filter(recipe=instance)
+        for item in items:
+            recipes = [Recipe.objects.filter(ingredients__name=item)]
+            if len(recipes) <= 1:
+                if item.name not in result["ingredient"]:
+                    item.delete()
+
+        instance.ingredients.clear()
+        instance.categories.clear()
+
+        complete_form.save()
+
+        for ingredient, quantity, group in zip(result["ingredient"], result["quantity"], result["group"]):
+            new_ingredient = Ingredient.objects.get_or_create(name=ingredient)
+            complete_form.ingredients.add(new_ingredient[0].pk)
+            if group == '':
+                group = 'general'
+            Quantity.objects.get_or_create(ingredient=new_ingredient[0], recipe=complete_form,
+                                           # quantity=quantity, set=group)
+                                           defaults={'quantity': quantity, 'set': group})
+
+        for step, text in zip(result["step"], result["text"]):
+            Procedure.objects.get_or_create(recipe=complete_form, name=step, procedure=text)
+
+        instance.categories.clear()
+        for category in result["category"]:
+            new_category = Category.objects.get_or_create(name=category)
+            complete_form.categories.add(new_category[0].pk)
+
+        form.save_m2m()
+
+        return redirect('home')
+    return render(request, "recipes/dynamic_recipe.html", context)
+
 @login_required
 def new_from_url(request):
     if request.method == "POST":

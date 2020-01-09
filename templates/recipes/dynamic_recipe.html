@@ -13,7 +13,11 @@
 
 {% block content %}
 
+{% if recipe %}
+<form enctype="multipart/form-data" method="POST" role="form" action="{% url 'recipes:edit_recipe' recipe=recipe.id %}">
+{% else %}
 <form enctype="multipart/form-data" method="POST" role="form" action="{% url 'recipes:new_data' %}">
+{% endif %}
 
   <div class="row">
     <div class="col-md-6 mb-3">
@@ -43,22 +47,32 @@
   <div class="row">
     <div class="col-sm-4 nopadding">
       <div class="form-group">
-{#        <label for="group">Group</label>#}
-        <input type="text" class="form-control" id="group" name="group" value="" placeholder="Group">
+          {% if ingredients and ingredients.0.set != "general" %}
+              <input type="text" class="form-control" id="group" name="group" value="{{ ingredients.0.set }}" placeholder="Group">
+          {% else %}
+              <input type="text" class="form-control" id="group" name="group" value="" placeholder="Group">
+          {% endif %}
       </div>
     </div>
     <div class="col-sm-4 nopadding">
       <div class="form-group">
-        <input type="text" class="form-control" id="ingredient" name="ingredient" value="" placeholder="Ingredient">
+          {% if ingredients %}
+              <input type="text" class="form-control" id="ingredient" name="ingredient" value="{{ ingredients.0.name }}" placeholder="Ingredient">
+          {% else %}
+              <input type="text" class="form-control" id="ingredient" name="ingredient" value="" placeholder="Ingredient">
+          {% endif %}
       </div>
     </div>
     <div class="col-sm-4 nopadding">
       <div class="form-group">
         <div class="input-group">
-          <input type="text" class="form-control" id="quantity" name="quantity" value="" placeholder="Quantity">
-
+          {% if ingredients %}
+              <input type="text" class="form-control" id="quantity" name="quantity" value="{{ ingredients.0.quantity }}" placeholder="Quantity">
+          {% else %}
+              <input type="text" class="form-control" id="quantity" name="quantity" value="" placeholder="Quantity">
+          {% endif %}
           <div class="input-group-btn">
-            <button class="btn btn-success" type="button"  onclick="ingredient_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+            <button class="btn btn-success" id="ingredient_button" type="button"  onclick="ingredient_fields('');"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
           </div>
         </div>
 
@@ -68,22 +82,36 @@
     <div class="clear"></div>
   </div>
   <br>
+  <script>
+    {% for ingredient in ingredients %}
+        {% if ingredient.id != ingredients.0.id %}
+            ingredient_fields("{{ ingredient.set }}", "{{ ingredient.name }}", "{{ ingredient.quantity }}");
+        {% endif %}
+    {% endfor %}
+  </script>
 
 
   <label for="procedure_fields">Procedure</label>
   <div class="row">
     <div class="col-sm-2 nopadding">
       <div class="form-group">
-        <input type="text" class="form-control" id="step" name="step" value="" placeholder="Name of step">
+          {% if procedure %}
+              <input type="text" class="form-control" id="step" name="step" value="{{ procedure.0.name }}" placeholder="Name of step">
+          {% else %}
+              <input type="text" class="form-control" id="step" name="step" value="" placeholder="Name of step">
+          {% endif %}
       </div>
     </div>
     <div class="col-sm-10 nopadding">
       <div class="form-group">
         <div class="input-group">
-            <textarea class="form-control" rows="3" id="text" name="text" placeholder="Procedure"></textarea>
-
+            {% if procedure %}
+              <textarea class="form-control" rows="3" id="text" name="text" placeholder="Procedure">{{ procedure.0.procedure }}</textarea>
+            {% else %}
+              <textarea class="form-control" rows="3" id="text" name="text" placeholder="Procedure"></textarea>
+            {% endif %}
           <div class="input-group-btn">
-            <button class="btn btn-success" type="button"  onclick="procedure_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+            <button class="btn btn-success" id="procedure_button" type="button"  onclick="procedure_fields('');"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
           </div>
         </div>
 
@@ -93,18 +121,31 @@
     <div class="clear"></div>
   </div>
   <br>
+  <script>
+    {% for step in procedure %}
+        {% if step.id != procedure.0.id %}
+            procedure_fields("{{ step.name }}", "{{ step.procedure }}");
+        {% endif %}
+    {% endfor %}
+  </script>
+
+
 
   <label for="category_fields">Categories</label>
   <div class="row">
     <div class="col-sm-12 nopadding">
       <div class="form-group">
         <div class="input-group">
-            <input type="text" class="form-control" id="category" name="category" value="" placeholder="Name of category">
-
-          <div class="input-group-btn">
-            <button class="btn btn-success" type="button"  onclick="category_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
-          </div>
+                {% if categories %}
+                    <input type="text" class="form-control" id="category" name="category" value="{{categories.0.name}}" placeholder="Name of category">
+                {% else %}
+                    <input type="text" class="form-control" id="category" name="category" value="" placeholder="Name of category">
+                {% endif %}
+                <div class="input-group-btn">
+                    <button class="btn btn-success" id="category_button" type="button"  onclick="category_fields('')"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+                </div>
         </div>
+
 
       </div>
     </div>
@@ -112,6 +153,16 @@
     <div class="clear"></div>
   </div>
   <br>
+
+  <script>
+    {% for category in categories %}
+        {% if category.id != categories.0.id %}
+            category_fields("{{ category.name }}");
+        {% endif %}
+    {% endfor %}
+  </script>
+
+
 
 
 
