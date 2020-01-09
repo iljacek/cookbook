@@ -100,16 +100,19 @@ def new_recipe(request):
             complete_form.save()
 
             for ingredient, quantity, group in zip(result["ingredient"], result["quantity"], result["group"]):
-                new_ingredient = Ingredient.objects.get_or_create(name=ingredient)
-                complete_form.ingredients.add(new_ingredient[0].pk)
-                Quantity.objects.get_or_create(ingredient=new_ingredient[0], recipe=complete_form, quantity=quantity, set=group)
+                if ingredient != '':
+                    new_ingredient = Ingredient.objects.get_or_create(name=ingredient)
+                    complete_form.ingredients.add(new_ingredient[0].pk)
+                    Quantity.objects.get_or_create(ingredient=new_ingredient[0], recipe=complete_form, quantity=quantity, set=group)
 
             for step, text in zip(result["step"], result["text"]):
-                Procedure.objects.get_or_create(recipe=complete_form, name=step, procedure=text)
+                if step != '' and text != '':
+                    Procedure.objects.get_or_create(recipe=complete_form, name=step, procedure=text)
 
             for category in result["category"]:
-                new_category = Category.objects.get_or_create(name=category)
-                complete_form.categories.add(new_category[0].pk)
+                if category != '':
+                    new_category = Category.objects.get_or_create(name=category)
+                    complete_form.categories.add(new_category[0].pk)
 
             form.save_m2m()
 
@@ -126,11 +129,9 @@ def edit_recipe(request, recipe):
     form = RecipeForm(request.POST or None, instance=instance)
     procedure = Procedure.objects.filter(recipe=instance)
     categories = Category.objects.filter(recipe=instance)
-    ingredients = Ingredient.objects.filter(recipe=instance)
-    ingredients = [ingredient for ingredient in ingredients]
-    quantities = [Quantity.objects.get(recipe=instance, ingredient=ingredient) for ingredient in ingredients]
-    ingredients_list = [{"id": ingredient.id, "name": ingredient.name, "quantity": quantity.quantity,
-                         "set": quantity.set} for ingredient, quantity in zip(ingredients, quantities)]
+    quantities = Quantity.objects.filter(recipe=instance)
+    ingredients_list = [{"id": quantity.ingredient.id, "name": quantity.ingredient.name, "quantity": quantity.quantity,
+                         "set": quantity.set} for quantity in quantities]
 
     context = {'form': form,
                'recipe': instance, 'procedure': procedure, 'categories': categories, 'ingredients': ingredients_list}
@@ -154,7 +155,7 @@ def edit_recipe(request, recipe):
         items = Ingredient.objects.filter(recipe=instance)
         for item in items:
             recipes = [Recipe.objects.filter(ingredients__name=item)]
-            if len(recipes) <= 1:
+            if len(recipes[0]) <= 1:
                 if item.name not in result["ingredient"]:
                     item.delete()
 
@@ -164,21 +165,24 @@ def edit_recipe(request, recipe):
         complete_form.save()
 
         for ingredient, quantity, group in zip(result["ingredient"], result["quantity"], result["group"]):
-            new_ingredient = Ingredient.objects.get_or_create(name=ingredient)
-            complete_form.ingredients.add(new_ingredient[0].pk)
-            if group == '':
-                group = 'general'
-            Quantity.objects.get_or_create(ingredient=new_ingredient[0], recipe=complete_form,
-                                           # quantity=quantity, set=group)
-                                           defaults={'quantity': quantity, 'set': group})
+            if ingredient != '':
+                new_ingredient = Ingredient.objects.get_or_create(name=ingredient)
+                complete_form.ingredients.add(new_ingredient[0].pk)
+                if group == '':
+                    group = 'general'
+                Quantity.objects.get_or_create(ingredient=new_ingredient[0], recipe=complete_form,
+                                               # quantity=quantity, set=group)
+                                               defaults={'quantity': quantity, 'set': group})
 
         for step, text in zip(result["step"], result["text"]):
-            Procedure.objects.get_or_create(recipe=complete_form, name=step, procedure=text)
+            if step != '' and text != '':
+                Procedure.objects.get_or_create(recipe=complete_form, name=step, procedure=text)
 
         instance.categories.clear()
         for category in result["category"]:
-            new_category = Category.objects.get_or_create(name=category)
-            complete_form.categories.add(new_category[0].pk)
+            if category != '':
+                new_category = Category.objects.get_or_create(name=category)
+                complete_form.categories.add(new_category[0].pk)
 
         form.save_m2m()
 
